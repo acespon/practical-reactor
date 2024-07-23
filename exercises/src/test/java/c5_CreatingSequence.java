@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -277,28 +276,32 @@ public class c5_CreatingSequence {
         //------------------------------------------------------
 
         Flux<Integer> createFlux = Flux.create(sink -> {
-            //todo: fix following code so it emits values from 0 to 5 and then completes
-            IntStream.range(0, 6).forEach(sink::next);
+            for (int i = 0; i <= 5; i++) {
+                sink.next(i);
+            }
+            sink.complete();
         });
 
         //------------------------------------------------------
 
         Flux<Integer> pushFlux = Flux.push(sink -> {
-            IntStream.range(0, 6).forEach(sink::next);
-            //todo: fix following code so it emits values from 0 to 5 and then completes
+            for (int i = 0; i <= 5; i++) {
+                sink.next(i);
+            }
+            sink.complete();
         });
 
         StepVerifier.create(generateFlux)
                 .expectNext(0, 1, 2, 3, 4, 5)
                 .verifyComplete();
 
-//        StepVerifier.create(createFlux)
-//                .expectNext(0, 1, 2, 3, 4, 5)
-//                .verifyComplete();
-//
-//        StepVerifier.create(pushFlux)
-//                .expectNext(0, 1, 2, 3, 4, 5)
-//                .verifyComplete();
+        StepVerifier.create(createFlux)
+                .expectNext(0, 1, 2, 3, 4, 5)
+                .verifyComplete();
+
+        StepVerifier.create(pushFlux)
+                .expectNext(0, 1, 2, 3, 4, 5)
+                .verifyComplete();
     }
 
     /**
@@ -307,7 +310,7 @@ public class c5_CreatingSequence {
     @Test
     public void multi_threaded_producer() {
         //todo: find a bug and fix it!
-        Flux<Integer> producer = Flux.push(sink -> {
+        Flux<Integer> producer = Flux.create(sink -> {
             for (int i = 0; i < 100; i++) {
                 int finalI = i;
                 new Thread(() -> sink.next(finalI)).start(); //don't change this line!
