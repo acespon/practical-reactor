@@ -2,6 +2,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.retry.Retry;
 
@@ -111,8 +112,8 @@ public class c7_ErrorHandling extends ErrorHandlingBase {
     public void error_reporter() {
         //todo: feel free to change code as you need
         Flux<String> messages = messageNode()
-                .doOnError(e -> errorReportService(e))
-                .thenMany(e -> Flux.error((Throwable) e));
+                .publishOn(Schedulers.boundedElastic())
+                .doOnError(e -> errorReportService(e).subscribe()); //calling subscribe in non-blocking context is not recommended
 
 
         //don't change below this line
